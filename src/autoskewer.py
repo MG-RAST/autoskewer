@@ -17,21 +17,30 @@ def revc(s):
 
 def read_fasta_to_table(filen):
     table = {} 
-    for line in open(filen):
+    try:
+        FILE = open(filen)
+    except IOError:
+        sys.stderr.write("Can't open file"+ filen+ "!\n")
+        sys.exit(1)
+    for line in FILE: 
         if line[0] == ">":  
-            header = line.strip()[1:]
+            header = line.strip()[1:].split()[0]
         else:
             sequence = line.strip()
             table[header] = sequence
     return table
 
 def grab_first_field(filen):
-    contents = open(filen).readlines()
+    try:
+        contents = open(filen).readlines()
+    except IOError:
+        sys.stderr.write("Can't open file"+ filen+ "!\n")
+        sys.exit(1)
     firstfield = contents[0].strip().split("\t")[0]
     return firstfield
 
 if __name__ == '__main__':
-    usage  = "usage: %prog -i <input sequence file> -o <output file>"
+    usage  = "usage: %prog <filestem>\nExamines already-calculated .P5.csv and .P7.csv and invokes skew.sh"
     parser = OptionParser(usage)
 #    parser.add_option("-i", "--input",  dest="input", default=None, help="Input sequence file.")
 #    parser.add_option("-o", "--output", dest="output", default=None, help="Output file.")
@@ -53,4 +62,4 @@ if __name__ == '__main__':
     print P5r
     print P7adapter
     print P7r  
-    check_call(["skew.sh", filename, P7adapter, P7r, P5adapter, P5r])
+    check_call(["skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
