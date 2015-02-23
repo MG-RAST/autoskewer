@@ -36,8 +36,11 @@ def grab_first_field(filen):
     except IOError:
         sys.stderr.write("Can't open file"+ filen+ "!\n")
         sys.exit(1)
-    firstfield = contents[0].strip().split("\t")[0]
-    return firstfield
+    try:
+        firstfield = contents[0].strip().split("\t")[0]
+        return firstfield
+    except IndexError:
+        return ""
 
 if __name__ == '__main__':
     usage  = "usage: %prog <filestem>\nExamines already-calculated .P5.csv and .P7.csv and invokes skew.sh"
@@ -50,8 +53,12 @@ if __name__ == '__main__':
     filename = args[0]
     if not (filename and os.path.isfile(filename) ):
         parser.error("Missing input file" )
+    if not (os.path.isfile(filename+".P5.csv")):
+        check_call(["idvector.sh", filename])
     P5table = read_fasta_to_table("/home/ubuntu/vectors-P5.fa")
     P7table = read_fasta_to_table("/home/ubuntu/vectors-P7.fa")
+    P5table[""] = ""
+    P7table[""] = ""
     P5adaptername = grab_first_field(filename + ".P5.csv")
     P7adaptername = grab_first_field(filename + ".P7.csv")
     P5adapter = P5table[P5adaptername]

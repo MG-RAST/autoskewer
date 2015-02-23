@@ -3,22 +3,31 @@
 filename=$1
 stem=${filename/.fastq/}
 
-if [ $# != 5 ] 
-then
-echo "Not enough arguments!"
-echo "skew.sh filename.fastq ADAPTER1 ADAPTER2 ADAPTER3 ADAPTER4"
-exit 1
-fi
-
 # skew.sh sample.fastq TCTGTCTCTTATACACATCTCCGAGCCCACGAGACgtagaggaATCTCGTATGCCGTCTTCTGCTTGAA CTGTCTCTTATACACATCTGACGCTGCCGACGAtctactctGTGTAGATCTCGGTGGTCGCCGTATCATT TTCAAGCAGAAGACGGCATACGAGATtcctctacGTCTCGTGGGCTCGGAGATGTGTATAAGAGACAGA AATGATACGGCGACCACCGAGATCTACACagagtagaTCGTCGGCAGCGTCAGATGTGTATAAGAGACAG
+if [ "x$2" != "x" ] 
+then
 echo ">adapt1"  > $stem.adapter.fa
 echo $2        >> $stem.adapter.fa
+fi
+if [ "x$3" != "x" ] 
+then
 echo ">adapt2" >> $stem.adapter.fa
 echo $3        >> $stem.adapter.fa
+fi 
+if [ "x$4" != "x" ] 
+then
 echo ">adapt3" >> $stem.adapter.fa
 echo $4        >> $stem.adapter.fa
+fi
+if [ "x$5" != "x" ] 
+then
 echo ">adapt4" >> $stem.adapter.fa
 echo $5        >> $stem.adapter.fa
+fi
+
+# echo "Not enough arguments!"
+# echo "skew.sh filename.fastq ADAPTER1 ADAPTER2 [ADAPTER3 ADAPTER4]"
+# exit 1 
 
 options="-k 5 -l 1 --quiet -t 4"
 
