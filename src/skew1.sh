@@ -29,7 +29,7 @@ fi
 # echo "skew.sh filename.fastq ADAPTER1 ADAPTER2 [ADAPTER3 ADAPTER4]"
 # exit 1 
 
-options="-k 5 -l 1 --quiet -t 4 -r .2 -m any"
+options="-k 5 -l 0 --quiet -t 4 -r .2 -m any"
 
 skewer -x $stem.adapter.fa $options $filename -o $stem.4 
 
