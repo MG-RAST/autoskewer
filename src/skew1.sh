@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# This was the driver for skewer.  It creates a fasta file with a handful of fasta sequences
+# passed on the command line, and invokes skewer using this file.
+
+# skew1.sh sample.fastq sequence1 [sequence2] [sequence3] [sequence4]
+
 filename=$1
 stem=${filename/.fastq/}
 
