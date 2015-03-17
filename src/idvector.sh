@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Script to check the first N reads of an input file against two databases
+# of known adapter sequences, count the adapters that have the most alingments,
+# and create both a list of adapter counts (in the sample) and the bowtie2 
+# output, recording the fraction of reads with alignments
+
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 DATAPATH=$DIR/../data
 
