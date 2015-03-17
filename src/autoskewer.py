@@ -50,13 +50,14 @@ if __name__ == '__main__':
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=True, help="Verbose [default off]")
   
     (opts, args) = parser.parse_args()
+    dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
     filename = args[0]
     if not (filename and os.path.isfile(filename) ):
         parser.error("Missing input file" )
     if not (os.path.isfile(filename+".P5.csv")):
         check_call(["idvector.sh", filename])
-    P5table = read_fasta_to_table("/home/ubuntu/vectors-P5.fa")
-    P7table = read_fasta_to_table("/home/ubuntu/vectors-P7.fa")
+    P5table = read_fasta_to_table(dirname + "/../data/vectors-P5.fa")
+    P7table = read_fasta_to_table(dirname + "/../data/vectors-P7.fa")
     P5table[""] = ""
     P7table[""] = ""
     P5adaptername = grab_first_field(filename + ".P5.csv")
