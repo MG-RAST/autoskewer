@@ -27,21 +27,21 @@ bowtie2, skewer, and the autoskewer/src directory must be in PATH.
 Example invokation
 ==================
 
-     autoskewer.py <input.fastq>
+     autoskewer.py example/sample.fastq
  
 Produces
-     input.fastq.P5.csv
-     input.fastq.P5.err
-     input.fastq.P7.csv
-     input.fastq.P7.err
+     sample.fastq.P5.csv
+     sample.fastq.P5.err
+     sample.fastq.P7.csv
+     sample.fastq.P7.err
 and the output
-     input.scrubbed.fastq
+     sample.scrubbed.fastq
 
 `autoskewer.py` does not have any options at the moment.
 
 Authors
 =======
 
-Will Trimble and Wolfgang Gerlath at University of Chicago, Institute for Genomics 
+Will Trimble and Wolfgang Gerlach at University of Chicago, Institute for Genomics 
 and Systems Biology.
 
