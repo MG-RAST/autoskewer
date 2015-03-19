@@ -5,6 +5,9 @@
 # and create both a list of adapter counts (in the sample) and the bowtie2 
 # output, recording the fraction of reads with alignments
 
+set -e
+set -x
+ 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 DATAPATH=$DIR/../data
 
