@@ -6,6 +6,13 @@
 # skew1.sh sample.fastq sequence1 [sequence2] [sequence3] [sequence4]
 
 filename=$1
+
+if [[ ! -e $filename ]]
+then
+echo $0 ": Can't find file $filename !"
+exit 1
+fi
+
 stem=${filename/.fastq/}
 
 # skew.sh sample.fastq TCTGTCTCTTATACACATCTCCGAGCCCACGAGACgtagaggaATCTCGTATGCCGTCTTCTGCTTGAA CTGTCTCTTATACACATCTGACGCTGCCGACGAtctactctGTGTAGATCTCGGTGGTCGCCGTATCATT TTCAAGCAGAAGACGGCATACGAGATtcctctacGTCTCGTGGGCTCGGAGATGTGTATAAGAGACAGA AATGATACGGCGACCACCGAGATCTACACagagtagaTCGTCGGCAGCGTCAGATGTGTATAAGAGACAG

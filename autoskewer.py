@@ -51,13 +51,15 @@ if __name__ == '__main__':
   
     (opts, args) = parser.parse_args()
     dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
+    if not len(args) == 1 :
+        parser.error("Missing input filename")
     filename = args[0]
     if not (filename and os.path.isfile(filename) ):
         parser.error("Missing input file" )
     if not (os.path.isfile(filename+".P5.csv")):
-        check_call(["idvector.sh", filename])
-    P5table = read_fasta_to_table(dirname + "/../data/vectors-P5.fa")
-    P7table = read_fasta_to_table(dirname + "/../data/vectors-P7.fa")
+        check_call([dirname+"/src/idvector.sh", filename])
+    P5table = read_fasta_to_table(dirname + "/data/vectors-P5.fa")
+    P7table = read_fasta_to_table(dirname + "/data/vectors-P7.fa")
     P5table[""] = ""
     P7table[""] = ""
     P5adaptername = grab_first_field(filename + ".P5.csv")
@@ -70,4 +72,4 @@ if __name__ == '__main__':
     print P5r
     print P7adapter
     print P7r  
-    check_call(["skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
+    check_call([dirname+"/src/skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
