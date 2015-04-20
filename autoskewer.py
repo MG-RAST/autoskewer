@@ -3,7 +3,7 @@
 import sys, os
 from optparse import OptionParser
 from string import maketrans
-from subprocess import check_call
+from subprocess import call
 
 def revc(s):
     '''reverse complement a string'''
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     if not (filename and os.path.isfile(filename) ):
         parser.error("Missing input file" )
     if not (os.path.isfile(filename+".P5.csv")):
-        check_call([dirname+"/src/idvector.sh", filename])
+        call([dirname+"/src/idvector.sh", filename])
     P5table = read_fasta_to_table(dirname + "/data/vectors-P5.fa")
     P7table = read_fasta_to_table(dirname + "/data/vectors-P7.fa")
     P5table[""] = ""
@@ -72,4 +72,4 @@ if __name__ == '__main__':
     print P5r
     print P7adapter
     print P7r  
-    check_call([dirname+"/src/skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
+    call([dirname+"/src/skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
