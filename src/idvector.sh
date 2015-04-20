@@ -19,6 +19,12 @@ fi
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 DATAPATH=$DIR/../data
 
+if [[ ! -e $DATAPATH/vectors-P5.4.bt2 ]] 
+then
+echo "Can't find file bowtie index (in $DATAPATH), perhaps you didn't make bowtie indexes?"
+exit 1 
+fi
+
 bowtie2 -x $DATAPATH/vectors-P5  $filename --no-head --local --upto 2000000 -p 4 > $filename.P5.tmp 2> $filename.P5.err
 bowtie2 -x $DATAPATH/vectors-P7  $filename --no-head --local --upto 2000000 -p 4 > $filename.P7.tmp 2> $filename.P7.err
 
