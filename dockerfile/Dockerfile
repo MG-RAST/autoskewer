@@ -12,8 +12,12 @@ RUN apt-get update && apt-get install -y wget unzip git make g++ python
 RUN wget --content-disposition http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.2.5/bowtie2-2.2.5-linux-x86_64.zip/download && unzip bowtie2-2.2.5-linux-x86_64.zip && cp /bowtie2-2.2.5/bowtie2* /usr/local/bin
 
 
-# skewer
-RUN git clone http://github.com/relipmoc/skewer && cd skewer && make && make install
+# skewer (forked version)
+RUN git clone http://github.com/wltrimbl/skewer && cd skewer && make && make install
 
 #autoskewer
 RUN git clone http://github.com/wltrimbl/autoskewer && cd autoskewer && make
+
+ENV PATH /autoskewer/:$PATH
+
+CMD ["bash"]
