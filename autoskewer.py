@@ -15,6 +15,15 @@ def revc(s):
     t=s.translate(trantab)[::-1]
     return t
 
+def write_adapter_fasta(filename, namesandadapters):
+    fh = open(filename, 'w')
+    assert len(namesandadapters) %2 == 0
+    for i in range(len(namesandadapters)/2):
+        fh.write(">"+namesandadapters[2*i]+"\n" +
+             namesandadapters[2*i+1] + "\n")
+    fh.close()
+
+
 def read_fasta_to_table(filen):
     table = {} 
     try:
@@ -72,4 +81,17 @@ if __name__ == '__main__':
     print P5r
     print P7adapter
     print P7r  
-    call([dirname+"/src/skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
+    write_adapter_fasta(filename+".adapter.fa", 
+        [P5adaptername, P5adapter, P5adaptername+"_R", 
+         P5r, P7adaptername, P7adapter, 
+         P7adaptername+"_R", P7r])
+    options="-k 5 -l 0 --quiet -t 4 -r .2 -m any"
+
+    skewcmd = "skewer -x " + filename + ".adapter.fa "+ options + " " + filename +" -o " + filename + ".4"
+    print skewcmd
+    call(skewcmd.split(" "))
+    os.rename(filename + ".4-trimmed.fastq", 
+        filename+".scrubbed.fastq")
+    os.rename(filename + ".4-trimmed.log", 
+        filename+".scrubbed.log")
+#    call([dirname+"/src/skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
