@@ -8,19 +8,20 @@ from subprocess import call
 def revc(s):
     '''reverse complement a string'''
     t = " " * len(s)
-    l=len(s)
+    l = len(s)
     intab = "AaCcGgTt"
     outtab = "TtGgCcAa"
     trantab = maketrans(intab, outtab)
-    t=s.translate(trantab)[::-1]
+    t = s.translate(trantab)[::-1]
     return t
 
 def write_adapter_fasta(filename, namesandadapters):
     fh = open(filename, 'w')
-    assert len(namesandadapters) %2 == 0
+    assert len(namesandadapters) % 2 == 0
     for i in range(len(namesandadapters)/2):
-        fh.write(">"+namesandadapters[2*i]+"\n" +
-             namesandadapters[2*i+1] + "\n")
+        if len(namesandadapters[2*i+1]) > 0:
+            fh.write(">"+namesandadapters[2*i]+"\n" +
+                     namesandadapters[2*i+1] + "\n")
     fh.close()
 
 
@@ -52,7 +53,7 @@ def grab_first_field(filen):
         return ""
 
 if __name__ == '__main__':
-    usage  = "usage: %prog <filestem>\nExamines already-calculated .P5.csv and .P7.csv and invokes skew.sh"
+    usage = "usage: %prog <filestem>\nExamines already-calculated .P5.csv and .P7.csv and invokes skew.sh"
     parser = OptionParser(usage)
 #    parser.add_option("-i", "--input",  dest="input", default=None, help="Input sequence file.")
 #    parser.add_option("-o", "--output", dest="output", default=None, help="Output file.")
@@ -60,11 +61,11 @@ if __name__ == '__main__':
   
     (opts, args) = parser.parse_args()
     dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
-    if not len(args) == 1 :
+    if not len(args) == 1:
         parser.error("Missing input filename")
     filename = args[0]
-    if not (filename and os.path.isfile(filename) ):
-        parser.error("Missing input file" )
+    if not (filename and os.path.isfile(filename)):
+        parser.error("Missing input file")
     if not (os.path.isfile(filename+".P5.csv")):
         call([dirname+"/src/idvector.sh", filename])
     P5table = read_fasta_to_table(dirname + "/data/vectors-P5.fa")
@@ -82,16 +83,16 @@ if __name__ == '__main__':
     print P7adapter
     print P7r  
     write_adapter_fasta(filename+".adapter.fa", 
-        [P5adaptername, P5adapter, P5adaptername+"_R", 
-         P5r, P7adaptername, P7adapter, 
-         P7adaptername+"_R", P7r])
-    options="-k 5 -l 0 --quiet -t 4 -r .2 -m any"
+                        [P5adaptername, P5adapter, P5adaptername+"_R", 
+                        P5r, P7adaptername, P7adapter, 
+                        P7adaptername+"_R", P7r])
+    options = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
 
     skewcmd = "skewer -x " + filename + ".adapter.fa "+ options + " " + filename +" -o " + filename + ".4"
     print skewcmd
     call(skewcmd.split(" "))
     os.rename(filename + ".4-trimmed.fastq", 
-        filename+".scrubbed.fastq")
+              filename+".scrubbed.fastq")
     os.rename(filename + ".4-trimmed.log", 
-        filename+".scrubbed.log")
+              filename+".scrubbed.log")
 #    call([dirname+"/src/skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
