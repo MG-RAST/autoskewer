@@ -6,6 +6,7 @@
 # output, recording the fraction of reads with alignments
 
 filename=$1
+filestem=${filename/.fastq/}
 
 set -e
 set -x
@@ -25,11 +26,11 @@ echo "Can't find file bowtie index (in $DATAPATH), perhaps you didn't make bowti
 exit 1 
 fi
 
-bowtie2 -x $DATAPATH/vectors-P5  $filename --no-head --local --upto 2000000 -p 4 > $filename.P5.tmp 2> $filename.P5.err
-bowtie2 -x $DATAPATH/vectors-P7  $filename --no-head --local --upto 2000000 -p 4 > $filename.P7.tmp 2> $filename.P7.err
+bowtie2 -x $DATAPATH/vectors-P5  $filename --no-head --local --upto 2000000 -p 4 > $filestem.P5.tmp 2> $filestem.P5.err
+bowtie2 -x $DATAPATH/vectors-P7  $filename --no-head --local --upto 2000000 -p 4 > $filestem.P7.tmp 2> $filestem.P7.err
 
-cut -f 3  $filename.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{print $2 "\t" $1}' | sort -k 2 -n -r > $filename.P5.csv
-cut -f 3  $filename.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{print $2 "\t" $1}' | sort -k 2 -n -r > $filename.P7.csv
+cut -f 3  $filestem.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{print $2 "\t" $1}' | sort -k 2 -n -r > $filestem.P5.csv
+cut -f 3  $filestem.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{print $2 "\t" $1}' | sort -k 2 -n -r > $filestem.P7.csv
 
-rm  $filename.P5.tmp
-rm  $filename.P7.tmp
+rm  $filestem.P5.tmp
+rm  $filestem.P7.tmp

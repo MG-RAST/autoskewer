@@ -64,6 +64,10 @@ if __name__ == '__main__':
     if not len(args) == 1:
         parser.error("Missing input filename")
     filename = args[0]
+    if filename[-6:] == ".fastq":
+        filestem = filename[:-6]
+    else:
+        filestem = filename
     if not (filename and os.path.isfile(filename)):
         parser.error("Missing input file")
     if not (os.path.isfile(filename+".P5.csv")):
@@ -72,8 +76,8 @@ if __name__ == '__main__':
     P7table = read_fasta_to_table(dirname + "/data/vectors-P7.fa")
     P5table[""] = ""
     P7table[""] = ""
-    P5adaptername = grab_first_field(filename + ".P5.csv")
-    P7adaptername = grab_first_field(filename + ".P7.csv")
+    P5adaptername = grab_first_field(filestem + ".P5.csv")
+    P7adaptername = grab_first_field(filestem + ".P7.csv")
     P5adapter = P5table[P5adaptername]
     P7adapter = P7table[P7adaptername]
     P5r = revc(P5adapter)
@@ -82,17 +86,17 @@ if __name__ == '__main__':
     print P5r
     print P7adapter
     print P7r  
-    write_adapter_fasta(filename+".adapter.fa", 
+    write_adapter_fasta(filestem+".adapter.fa", 
                         [P5adaptername, P5adapter, P5adaptername+"_R", 
                         P5r, P7adaptername, P7adapter, 
                         P7adaptername+"_R", P7r])
     options = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
 
-    skewcmd = "skewer -x " + filename + ".adapter.fa "+ options + " " + filename +" -o " + filename + ".4"
+    skewcmd = "skewer -x " + filestem + ".adapter.fa "+ options + " " + filename +" -o " + filestem + ".4"
     print skewcmd
     call(skewcmd.split(" "))
-    os.rename(filename + ".4-trimmed.fastq", 
-              filename+".scrubbed.fastq")
-    os.rename(filename + ".4-trimmed.log", 
-              filename+".scrubbed.log")
+    os.rename(filestem + ".4-trimmed.fastq", 
+              filestem + ".scrubbed.fastq")
+    os.rename(filestem + ".4-trimmed.log", 
+              filestem + ".scrubbed.log")
 #    call([dirname+"/src/skew1.sh", filename, P7adapter, P7r, P5adapter, P5r])
