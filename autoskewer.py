@@ -70,7 +70,7 @@ if __name__ == '__main__':
         filestem = filename
     if not (filename and os.path.isfile(filename)):
         parser.error("Missing input file")
-    if not (os.path.isfile(filename+".P5.csv")):
+    if not (os.path.isfile(filestem+".P5.csv")):
         call([dirname+"/src/idvector.sh", filename])
     P5table = read_fasta_to_table(dirname + "/data/vectors-P5.fa")
     P7table = read_fasta_to_table(dirname + "/data/vectors-P7.fa")
