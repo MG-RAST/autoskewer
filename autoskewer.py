@@ -8,14 +8,13 @@ from subprocess import check_call
 def idvector(fname):
     '''Run bowtie2 on dataset against library of adapters; create intermediate file with sorted list of adapter names'''
     DATAPATH = os.path.dirname(sys.argv[0])+"/data"
-    print(DATAPATH+"/vectors-P5.4.bt2")
     if not os.path.exists(DATAPATH+"/vectors-P5.4.bt2"):
         sys.stderr.write("Can't find bowtie2 index in data directory!\n")
         sys.exit(1)
     check_call("bowtie2 -x {}/vectors-P5  {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, fname, fname, fname), shell=True)
     check_call("bowtie2 -x {}/vectors-P7  {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, fname, fname, fname), shell=True)
     check_call("cut -f 3  {}.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P5.csv".format(fname, fname), shell=True)
-    check_call("cut -f 3  {}.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P7.csv".format(fname,fname), shell=True)
+    check_call("cut -f 3  {}.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P7.csv".format(fname, fname), shell=True)
     if not opts.verbose:
         os.remove(filename+".P5.tmp"); os.remove(filename+".P7.tmp"); os.remove(filename+".P5.err"); os.remove(filename+".P7.err")
     return
@@ -71,7 +70,7 @@ def grab_first_field(filen):
         return ""
 
 if __name__ == '__main__':
-    usage = "usage: %prog <fastqfile>\nExamines FASTQ for barcodes, produces fastqfile-trimmed.fastq"
+    usage = "usage: %prog <fastqfile>\nExamines FASTQ for barcodes, produces fastqfile.scrubbed.fastq"
     parser = OptionParser(usage)
 #    parser.add_option("-i", "--input",  dest="input", default=None, help="Input sequence file.")
 #    parser.add_option("-o", "--output", dest="output", default=None, help="Output file.")
