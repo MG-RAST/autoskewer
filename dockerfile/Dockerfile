@@ -13,10 +13,10 @@ RUN wget --content-disposition http://sourceforge.net/projects/bowtie-bio/files/
 
 
 # skewer (forked version)
-RUN git clone http://github.com/wltrimbl/skewer && cd skewer && make && make install
+RUN git clone http://github.com/relipmoc/skewer && cd skewer && git checkout tags/0.2.2 && make && make install
 
 #autoskewer
-RUN git clone http://github.com/wltrimbl/autoskewer && cd autoskewer && make
+RUN git clone http://github.com/MG-RAST/autoskewer && cd autoskewer && make
 
 ENV PATH /autoskewer/:$PATH
 
