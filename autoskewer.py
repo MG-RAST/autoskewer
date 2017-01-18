@@ -5,14 +5,27 @@ from optparse import OptionParser
 from string import maketrans
 from subprocess import check_call
 
+def idfiletype(fname):
+    with open(fname) as p:
+       firstline = p.readline()
+       if firstline[0] == ">":
+           return "FASTA"
+       if firstline[0] == "@":
+           return "FASTQ"
+       sys.exit("Cannot identify sequence file type")
+
 def idvector(fname):
     '''Run bowtie2 on dataset against library of adapters; create intermediate file with sorted list of adapter names'''
+    if TYPE == "FASTA":
+        OPTIONS = "-f"
+    else:
+        OPTIONS = "-q"
     DATAPATH = os.path.dirname(sys.argv[0])+"/data"
     if not os.path.exists(DATAPATH+"/vectors-P5.4.bt2"):
         sys.stderr.write("Can't find bowtie2 index in data directory!\n")
         sys.exit(1)
-    check_call("bowtie2 -x {}/vectors-P5  {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, fname, fname, fname), shell=True)
-    check_call("bowtie2 -x {}/vectors-P7  {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, fname, fname, fname), shell=True)
+    check_call("bowtie2 -x {}/vectors-P5 {} {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, OPTIONS, fname, fname, fname), shell=True)
+    check_call("bowtie2 -x {}/vectors-P7 {} {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, OPTIONS, fname, fname, fname), shell=True)
     check_call("cut -f 3  {}.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P5.csv".format(fname, fname), shell=True)
     check_call("cut -f 3  {}.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P7.csv".format(fname, fname), shell=True)
     if not opts.verbose:
@@ -81,12 +94,13 @@ if __name__ == '__main__':
     if not len(args) == 1:
         parser.error("Missing input filename")
     filename = args[0]
-    if filename[-6:] == ".fastq":
+    if filename[-6:-1] == ".fast":
         filestem = filename[:-6]
     else:
         filestem = filename
     if not (filename and os.path.isfile(filename)):
         parser.error("Missing input file")
+    TYPE = idfiletype(filename)
     idvector(filename)
     P5table = read_fasta_to_table(dirname + "/data/vectors-P5.fa")
     P7table = read_fasta_to_table(dirname + "/data/vectors-P7.fa")
@@ -108,12 +122,16 @@ if __name__ == '__main__':
                         P7adaptername+"_R", P7r])
     options = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
 
-    skewcmd = "skewer -x " + filestem + ".adapter.fa " + options + " " + filename +" -o " + filestem + ".4"
+    skewcmd = "skewer -x {filestem}.adapter.fa {options} {filename} -o {filestem}.4".format(options=options, filename=filename, filestem=filestem)
     print skewcmd
     check_call(skewcmd.split(" "))
-    os.rename(filestem + ".4-trimmed.fastq", 
-              filestem + ".scrubbed.fastq")
-    os.rename(filestem + ".4-trimmed.log", 
+    if TYPE=="FASTQ":
+        os.rename(filestem + ".4-trimmed.fastq",
+                  filestem + ".scrubbed.fastq")
+    else:
+        os.rename(filestem + ".4-trimmed.fastq",
+                  filestem + ".scrubbed.fasta")
+    os.rename(filestem + ".4-trimmed.log",
               filestem + ".scrubbed.log")
     if not opts.verbose:
         os.remove(filename+".P5.csv"); os.remove(filename+".P7.csv"); 
