@@ -23,12 +23,12 @@ def idvector(fname):
     if not os.path.exists(DATAPATH+"/vectors-P5.4.bt2"):
         sys.stderr.write("Can't find bowtie2 index in data directory!\n")
         sys.exit(1)
-    check_call("bowtie2 -x {}/vectors-P5 {} {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, OPTIONS, fname, fname, fname), shell=True)
-    check_call("bowtie2 -x {}/vectors-P7 {} {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, OPTIONS, fname, fname, fname), shell=True)
-    check_call("cut -f 3  {}.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P5.csv".format(fname, fname), shell=True)
-    check_call("cut -f 3  {}.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P7.csv".format(fname, fname), shell=True)
+    check_call("bowtie2 -x {}/vectors-P5 {} {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, OPTIONS, fname, PATHPREFIX, PATHPREFIX), shell=True)
+    check_call("bowtie2 -x {}/vectors-P7 {} {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, OPTIONS, fname, PATHPREFIX, PATHPREFIX), shell=True)
+    check_call("cut -f 3  {}.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P5.csv".format(PATHPREFIX, PATHPREFIX), shell=True)
+    check_call("cut -f 3  {}.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P7.csv".format(PATHPREFIX, PATHPREFIX), shell=True)
     if not opts.verbose:
-        os.remove(filename+".P5.tmp"); os.remove(filename+".P7.tmp"); os.remove(filename+".P5.err"); os.remove(filename+".P7.err")
+        os.remove(PATHPREFIX+".P5.tmp"); os.remove(PATHPREFIX+".P7.tmp"); os.remove(PATHPREFIX+".P5.err"); os.remove(PATHPREFIX+".P7.err")
     return
 
 def revc(s):
@@ -105,10 +105,15 @@ if __name__ == '__main__':
     TMPDIR = opts.tmpdir
     DATAPATH = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "data")
     PATHPREFIX = os.path.join(TMPDIR, os.path.basename(filestem))
+    if opts.verbose:
+        print "TYPE: "+TYPE
+        print "TMPDIR: "+TMPDIR
+        print "DATAPATH: "+DATAPATH
+        print "PATHPREFIX: "+PATHPREFIX
     
     idvector(filename)
-    P5table = read_fasta_to_table(os.path.join(DATAPATH, "/vectors-P5.fa"))
-    P7table = read_fasta_to_table(os.path.join(DATAPATH, "/vectors-P7.fa"))
+    P5table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P5.fa"))
+    P7table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P7.fa"))
     P5table[""] = ""
     P7table[""] = ""
     P5adaptername = grab_first_field(PATHPREFIX + ".P5.csv")
