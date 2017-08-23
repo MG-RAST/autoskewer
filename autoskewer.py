@@ -5,10 +5,6 @@ from optparse import OptionParser
 from string import maketrans
 from subprocess import check_call
 
-TYPE = ""
-TMPDIR = "."
-DATAPATH = "."
-
 def idfiletype(fname):
     with open(fname) as p:
        firstline = p.readline()
@@ -86,7 +82,6 @@ def grab_first_field(filen):
         return ""
 
 if __name__ == '__main__':
-    global TYPE, TMPDIR, DATAPATH
     usage = "usage: %prog -i <input seqfile> -o <scrubbed seqfile>\nExamines FASTA or FASTQ for barcodes"
     parser = OptionParser(usage)
     parser.add_option("-i", "--input", dest="input", default=None, help="Input sequence file.")
@@ -96,7 +91,7 @@ if __name__ == '__main__':
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose [default off]")
   
     (opts, args) = parser.parse_args()
-    if not (opts.input and os.path.isfile(opts.input):
+    if not (opts.input and os.path.isfile(opts.input)):
         parser.error("Missing input file")
     if not opts.output:
         parser.error("Missing output name")
@@ -108,12 +103,12 @@ if __name__ == '__main__':
     
     TYPE = idfiletype(filename)
     TMPDIR = opts.tmpdir
-    DATAPATH = os.path.dirname(os.path.realpath(sys.argv[0]))
+    DATAPATH = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "data")
     PATHPREFIX = os.path.join(TMPDIR, os.path.basename(filestem))
     
     idvector(filename)
-    P5table = read_fasta_to_table(DATAPATH + "/data/vectors-P5.fa")
-    P7table = read_fasta_to_table(DATAPATH + "/data/vectors-P7.fa")
+    P5table = read_fasta_to_table(os.path.join(DATAPATH, "/vectors-P5.fa"))
+    P7table = read_fasta_to_table(os.path.join(DATAPATH, "/vectors-P7.fa"))
     P5table[""] = ""
     P7table[""] = ""
     P5adaptername = grab_first_field(PATHPREFIX + ".P5.csv")
@@ -140,11 +135,11 @@ if __name__ == '__main__':
         print skewcmd
     check_call(skewcmd.split(" "))
     
-    os.rename(skewoutname."-trimmed.fastq", opts.output)
+    os.rename(skewoutname+"-trimmed.fastq", opts.output)
     if (opts.logfile):
-        os.rename(skewoutname."-trimmed.log", opts.logfile)
+        os.rename(skewoutname+"-trimmed.log", opts.logfile)
     else:
-        print open(skewoutname."-trimmed.log", 'r').read()
+        print open(skewoutname+"-trimmed.log", 'r').read()
     
     if not opts.verbose:
         os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv"); 
