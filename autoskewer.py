@@ -5,6 +5,10 @@ from optparse import OptionParser
 from string import maketrans
 from subprocess import check_call
 
+TYPE = ""
+TMPDIR = "."
+DATAPATH = "."
+
 def idfiletype(fname):
     with open(fname) as p:
        firstline = p.readline()
@@ -20,7 +24,6 @@ def idvector(fname):
         OPTIONS = "-f"
     else:
         OPTIONS = "-q"
-    DATAPATH = os.path.dirname(sys.argv[0])+"/data"
     if not os.path.exists(DATAPATH+"/vectors-P5.4.bt2"):
         sys.stderr.write("Can't find bowtie2 index in data directory!\n")
         sys.exit(1)
@@ -83,55 +86,65 @@ def grab_first_field(filen):
         return ""
 
 if __name__ == '__main__':
-    usage = "usage: %prog <fastqfile>\nExamines FASTQ for barcodes, produces fastqfile.scrubbed.fastq"
+    global TYPE, TMPDIR, DATAPATH
+    usage = "usage: %prog -i <input seqfile> -o <scrubbed seqfile>\nExamines FASTA or FASTQ for barcodes"
     parser = OptionParser(usage)
-#    parser.add_option("-i", "--input",  dest="input", default=None, help="Input sequence file.")
-#    parser.add_option("-o", "--output", dest="output", default=None, help="Output file.")
+    parser.add_option("-i", "--input", dest="input", default=None, help="Input sequence file.")
+    parser.add_option("-o", "--output", dest="output", default=None, help="Output scrubbed file.")
+    parser.add_option("-l", "--logfile", dest="logfile", default=None, help="Output log file [default STDOUT]")
+    parser.add_option("-t", "--tmpdir", dest="tmpdir", default=".", help="DIR for intermediate files [default CWD]")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose [default off]")
   
     (opts, args) = parser.parse_args()
-    dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
-    if not len(args) == 1:
-        parser.error("Missing input filename")
-    filename = args[0]
+    if not (opts.input and os.path.isfile(opts.input):
+        parser.error("Missing input file")
+    if not opts.output:
+        parser.error("Missing output name")
+    filename = opts.input
     if filename[-6:-1] == ".fast":
         filestem = filename[:-6]
     else:
         filestem = filename
-    if not (filename and os.path.isfile(filename)):
-        parser.error("Missing input file")
+    
     TYPE = idfiletype(filename)
+    TMPDIR = opts.tmpdir
+    DATAPATH = os.path.dirname(os.path.realpath(sys.argv[0]))
+    PATHPREFIX = os.path.join(TMPDIR, os.path.basename(filestem))
+    
     idvector(filename)
-    P5table = read_fasta_to_table(dirname + "/data/vectors-P5.fa")
-    P7table = read_fasta_to_table(dirname + "/data/vectors-P7.fa")
+    P5table = read_fasta_to_table(DATAPATH + "/data/vectors-P5.fa")
+    P7table = read_fasta_to_table(DATAPATH + "/data/vectors-P7.fa")
     P5table[""] = ""
     P7table[""] = ""
-    P5adaptername = grab_first_field(filename + ".P5.csv")
-    P7adaptername = grab_first_field(filename + ".P7.csv")
+    P5adaptername = grab_first_field(PATHPREFIX + ".P5.csv")
+    P7adaptername = grab_first_field(PATHPREFIX + ".P7.csv")
     P5adapter = P5table[P5adaptername]
     P7adapter = P7table[P7adaptername]
     P5r = revc(P5adapter)
     P7r = revc(P7adapter)
-    print P5adapter
-    print P5r
-    print P7adapter
-    print P7r  
-    write_adapter_fasta(filestem+".adapter.fa", 
+    if opts.verbose:
+        print P5adapter
+        print P5r
+        print P7adapter
+        print P7r
+    
+    adaptorfile = PATHPREFIX + ".adapter.fa"
+    skewoutname = PATHPREFIX + ".4"
+    skewoptions = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
+    write_adapter_fasta(adaptorfile, 
                         [P5adaptername, P5adapter, P5adaptername+"_R", 
                         P5r, P7adaptername, P7adapter, 
                         P7adaptername+"_R", P7r])
-    options = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
-
-    skewcmd = "skewer -x {filestem}.adapter.fa {options} {filename} -o {filestem}.4".format(options=options, filename=filename, filestem=filestem)
-    print skewcmd
+    skewcmd = "skewer -x %s %s %s -o %s"%(adaptorfile, skewoptions, filename, skewoutname)
+    if opts.verbose:
+        print skewcmd
     check_call(skewcmd.split(" "))
-    if TYPE=="FASTQ":
-        os.rename(filestem + ".4-trimmed.fastq",
-                  filestem + ".scrubbed.fastq")
+    
+    os.rename(skewoutname."-trimmed.fastq", opts.output)
+    if (opts.logfile):
+        os.rename(skewoutname."-trimmed.log", opts.logfile)
     else:
-        os.rename(filestem + ".4-trimmed.fastq",
-                  filestem + ".scrubbed.fasta")
-    os.rename(filestem + ".4-trimmed.log",
-              filestem + ".scrubbed.log")
+        print open(skewoutname."-trimmed.log", 'r').read()
+    
     if not opts.verbose:
-        os.remove(filename+".P5.csv"); os.remove(filename+".P7.csv"); 
+        os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv"); 
