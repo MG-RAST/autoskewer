@@ -27,17 +27,33 @@ bowtie2, skewer, and the autoskewer/src directory must be in PATH.
 Example invokation
 ==================
 
-     autoskewer.py example/sample.fastq
+     autoskewer.py -v -i example/sample.fastq -o scrubbed.fastq -l scrubbed.log
  
-Produces
-     sample.fastq.P5.csv
-     sample.fastq.P5.err
-     sample.fastq.P7.csv
-     sample.fastq.P7.err
-and the output
-     sample.scrubbed.fastq
+Produces in verbose mode:
+     sample.P5.csv
+     sample.P5.tmp
+     sample.P5.err
+     sample.P7.csv
+     sample.P7.tmp
+     sample.P7.err
 
-`autoskewer.py` does not have any options at the moment.
+Usage
+=======
+
+Usage: autoskewer.py -i <input seqfile> -o <scrubbed seqfile>
+Examines FASTA or FASTQ for barcodes
+
+Options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input=INPUT
+                        Input sequence file.
+  -o OUTPUT, --output=OUTPUT
+                        Output scrubbed file.
+  -l LOGFILE, --logfile=LOGFILE
+                        Output log file [default STDOUT]
+  -t TMPDIR, --tmpdir=TMPDIR
+                        DIR for intermediate files [default CWD]
+  -v, --verbose         Verbose [default off]
 
 Authors
 =======
