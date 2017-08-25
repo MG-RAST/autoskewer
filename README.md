@@ -30,15 +30,15 @@ Example invokation
 autoskewer.py -v -i example/sample.fastq -o scrubbed.fastq -l scrubbed.log
 ```
 
-```text
 Produces in verbose mode:
-     sample.P5.csv
-     sample.P5.tmp
-     sample.P5.err
-     sample.P7.csv
-     sample.P7.tmp
-     sample.P7.err
-```
+
+sample.P5.csv<br>
+sample.P5.tmp<br>
+sample.P5.err<br>
+sample.P7.csv<br>
+sample.P7.tmp<br>
+sample.P7.err
+
 Usage
 =======
 ```text
