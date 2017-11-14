@@ -84,11 +84,11 @@ def grab_first_field(filen):
 if __name__ == '__main__':
     usage = "usage: %prog -i <input seqfile> -o <scrubbed seqfile>\nExamines FASTA or FASTQ for barcodes"
     parser = OptionParser(usage)
+    parser.add_option("-p", "--processes", dest="processes", type=int, default=4, help="Number of processes (default 4)")
     parser.add_option("-i", "--input", dest="input", default=None, help="Input sequence file.")
     parser.add_option("-o", "--output", dest="output", default=None, help="Output scrubbed file.")
     parser.add_option("-l", "--logfile", dest="logfile", default=None, help="Output log file [default STDOUT]")
     parser.add_option("-t", "--tmpdir", dest="tmpdir", default=".", help="DIR for intermediate files [default CWD]")
-    parser.add_option("-t", "--threads", dest="threads", type=int, default=4, help="Number of threads (default 4)")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose [default off]")
   
     (opts, args) = parser.parse_args()
@@ -131,14 +131,14 @@ if __name__ == '__main__':
     
     adaptorfile = PATHPREFIX + ".adapter.fa"
     skewoutname = PATHPREFIX + ".4"
-    skewoptions = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
+    skewoptions = "-k 5 -l 0 --quiet -t {} -r .2 -m any".format(str(opts.processes))
     write_adapter_fasta(adaptorfile, 
                         [P5adaptername, P5adapter, P5adaptername+"_R", 
                         P5r, P7adaptername, P7adapter, 
                         P7adaptername+"_R", P7r])
     options = "-k 5 -l 0 --quiet -t {} -r .2 -m any".format(str(opts.threads))
 
-    skewcmd = "skewer -x {filestem}.adapter.fa {options} {filename} -o {filestem}.4".format(options=options, filename=filename, filestem=filestem)
+    skewcmd = "skewer -x {filestem}.adapter.fa {options} {filename} -o {filestem}.4".format(options=skewoptions, filename=filename, filestem=filestem)
     if opts.verbose:
         print skewcmd
     check_call(skewcmd.split(" "))
