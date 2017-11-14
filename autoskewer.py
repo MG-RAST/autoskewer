@@ -2,8 +2,11 @@
 
 import sys, os
 from optparse import OptionParser
-from string import maketrans
 from subprocess import check_call
+try:
+    from string import maketrans
+except ImportError:
+    maketrans = "".maketrans
 
 def idfiletype(fname):
     with open(fname) as p:
@@ -45,7 +48,7 @@ def write_adapter_fasta(filename, namesandadapters):
     '''Writes a fasta file containing a handful of sequence names, sequences'''
     fh = open(filename, 'w')
     assert len(namesandadapters) % 2 == 0
-    for i in range(len(namesandadapters)/2):
+    for i in range(int(len(namesandadapters)/2)):
         if len(namesandadapters[2*i + 1]) > 0:
             fh.write(">"+namesandadapters[2*i]+"\n" +
                      namesandadapters[2*i + 1] + "\n")
@@ -109,10 +112,10 @@ if __name__ == '__main__':
     DATAPATH = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "data")
     PATHPREFIX = os.path.join(TMPDIR, os.path.basename(filestem))
     if opts.verbose:
-        print "TYPE: "+TYPE
-        print "TMPDIR: "+TMPDIR
-        print "DATAPATH: "+DATAPATH
-        print "PATHPREFIX: "+PATHPREFIX
+        print("TYPE: "+TYPE)
+        print("TMPDIR: "+TMPDIR)
+        print("DATAPATH: "+DATAPATH)
+        print("PATHPREFIX: "+PATHPREFIX)
     if not opts.output:  # guess output file name
         outputfile = filestem + ".scrubbed." + TYPE.lower()
     else: 
@@ -130,10 +133,10 @@ if __name__ == '__main__':
     P5r = revc(P5adapter)
     P7r = revc(P7adapter)
     if opts.verbose:
-        print P5adapter
-        print P5r
-        print P7adapter
-        print P7r
+        print(P5adapter)
+        print(P5r)
+        print(P7adapter)
+        print(P7r)
     
     adaptorfile = PATHPREFIX + ".adapter.fa"
     skewoutname = PATHPREFIX + ".4"
@@ -145,7 +148,7 @@ if __name__ == '__main__':
 
     skewcmd = "skewer -x {adaptorfile} {options} {filename} -o {filestem}.4".format(adaptorfile=adaptorfile, options=skewoptions, filename=filename, filestem=filestem)
     if opts.verbose:
-        print skewcmd
+        print(skewcmd)
     check_call(skewcmd.split(" "))
     
     os.rename(filestem + ".4-trimmed.fastq", outputfile)
@@ -153,7 +156,7 @@ if __name__ == '__main__':
         os.rename(filestem + ".4-trimmed.log", opts.logfile)
     else:
         os.rename(filestem + ".4-trimmed.log", filestem + ".scrubbed.log")
-#        print open(filestem + ".4-trimmed.log", 'r').read()
+#        print(open(filestem + ".4-trimmed.log", 'r').read())
     
     if not opts.verbose:
         os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv"); 
