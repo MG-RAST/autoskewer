@@ -20,6 +20,14 @@ def idfiletype(fname):
            return "FASTQ"
        sys.exit("Cannot identify sequence file type")
 
+def remove_fastx_suffix(fname):
+    # remove suffixes .fastq and .fasta, retain other suffixes
+    if fname[-6:-1] == ".fast":
+        stem = fname[:-6]
+    else:
+        stem = fname
+    return stem
+
 def idvector(fname):
     '''Run bowtie2 on dataset against library of adapters; create intermediate file with sorted list of adapter names'''
     if TYPE == "FASTA":
@@ -40,7 +48,6 @@ def idvector(fname):
 def revc(s):
     '''reverse complement a string'''
     t = " " * len(s)
-    l = len(s)
     intab = "AaCcGgTt"
     outtab = "TtGgCcAa"
     trantab = maketrans(intab, outtab)
@@ -105,10 +112,7 @@ if __name__ == '__main__':
             parser.error("Missing input file or wrong number of arguments")
     else:
         filename = opts.input
-    if filename[-6:-1] == ".fast": 
-        filestem = filename[:-6]
-    else:
-        filestem = filename
+    filestem = remove_fastx_suffix(filename)
 
     TYPE = idfiletype(filename)
     TMPDIR = opts.tmpdir
@@ -123,7 +127,14 @@ if __name__ == '__main__':
         outputfile = filestem + ".scrubbed." + TYPE.lower()
     else: 
         outputfile = opts.output
-
+    if not opts.logfile:
+        if opts.output:
+            outstem = remove_fastx_suffix(outputfile)
+            logfile = outstem + ".log"
+        else:
+            logfile = filestem + ".scrubbed.log"
+    else:
+        logfile = opts.logfile
     idvector(filename)
     P5table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P5.fa"))
     P7table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P7.fa"))
@@ -155,13 +166,8 @@ if __name__ == '__main__':
         print(skewcmd)
     check_call(skewcmd.split(" "))
     
-
     shutil.move(filestem + ".4-trimmed.fastq", outputfile)
-    if opts.logfile:
-        shutil.move(filestem + ".4-trimmed.log", opts.logfile)
-    else:
-        shutil.move(filestem + ".4-trimmed.log", filestem + ".scrubbed.log")
-#        print(open(filestem + ".4-trimmed.log", 'r').read())
+    shutil.move(filestem + ".4-trimmed.log", logfile)
     
     if not opts.verbose:
         os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv");
