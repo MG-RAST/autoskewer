@@ -2,8 +2,11 @@
 
 import sys, os
 from optparse import OptionParser
-from string import maketrans
 from subprocess import check_call
+try:
+    from string import maketrans
+except ImportError:
+    maketrans = "".maketrans
 
 def idfiletype(fname):
     with open(fname) as p:
@@ -45,7 +48,7 @@ def write_adapter_fasta(filename, namesandadapters):
     '''Writes a fasta file containing a handful of sequence names, sequences'''
     fh = open(filename, 'w')
     assert len(namesandadapters) % 2 == 0
-    for i in range(len(namesandadapters)/2):
+    for i in range(int(len(namesandadapters)/2)):
         if len(namesandadapters[2*i + 1]) > 0:
             fh.write(">"+namesandadapters[2*i]+"\n" +
                      namesandadapters[2*i + 1] + "\n")
@@ -84,6 +87,7 @@ def grab_first_field(filen):
 if __name__ == '__main__':
     usage = "usage: %prog -i <input seqfile> -o <scrubbed seqfile>\nExamines FASTA or FASTQ for barcodes"
     parser = OptionParser(usage)
+    parser.add_option("-p", "--processes", dest="processes", type=int, default=4, help="Number of processes (default 4)")
     parser.add_option("-i", "--input", dest="input", default=None, help="Input sequence file.")
     parser.add_option("-o", "--output", dest="output", default=None, help="Output scrubbed file.")
     parser.add_option("-l", "--logfile", dest="logfile", default=None, help="Output log file [default STDOUT]")
@@ -92,25 +96,31 @@ if __name__ == '__main__':
   
     (opts, args) = parser.parse_args()
     if not (opts.input and os.path.isfile(opts.input)):
-        parser.error("Missing input file")
-    if not opts.output:
-        parser.error("Missing output name")
-    filename = opts.input
-    if filename[-6:-1] == ".fast":
+        if len(args) == 1 and os.path.isfile(args[0]):
+             filename = args[0]
+        else:
+            parser.error("Missing input file or wrong number of arguments")
+    else:
+        filename = opts.input
+    if filename[-6:-1] == ".fast": 
         filestem = filename[:-6]
     else:
         filestem = filename
-    
+
     TYPE = idfiletype(filename)
     TMPDIR = opts.tmpdir
     DATAPATH = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "data")
     PATHPREFIX = os.path.join(TMPDIR, os.path.basename(filestem))
     if opts.verbose:
-        print "TYPE: "+TYPE
-        print "TMPDIR: "+TMPDIR
-        print "DATAPATH: "+DATAPATH
-        print "PATHPREFIX: "+PATHPREFIX
-    
+        print("TYPE: "+TYPE)
+        print("TMPDIR: "+TMPDIR)
+        print("DATAPATH: "+DATAPATH)
+        print("PATHPREFIX: "+PATHPREFIX)
+    if not opts.output:  # guess output file name
+        outputfile = filestem + ".scrubbed." + TYPE.lower()
+    else: 
+        outputfile = opts.output
+
     idvector(filename)
     P5table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P5.fa"))
     P7table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P7.fa"))
@@ -123,28 +133,30 @@ if __name__ == '__main__':
     P5r = revc(P5adapter)
     P7r = revc(P7adapter)
     if opts.verbose:
-        print P5adapter
-        print P5r
-        print P7adapter
-        print P7r
+        print(P5adapter)
+        print(P5r)
+        print(P7adapter)
+        print(P7r)
     
     adaptorfile = PATHPREFIX + ".adapter.fa"
     skewoutname = PATHPREFIX + ".4"
-    skewoptions = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
+    skewoptions = "-k 5 -l 0 --quiet -t {} -r .2 -m any".format(str(opts.processes))
     write_adapter_fasta(adaptorfile, 
                         [P5adaptername, P5adapter, P5adaptername+"_R", 
                         P5r, P7adaptername, P7adapter, 
                         P7adaptername+"_R", P7r])
-    skewcmd = "skewer -x %s %s %s -o %s"%(adaptorfile, skewoptions, filename, skewoutname)
+
+    skewcmd = "skewer -x {adaptorfile} {options} {filename} -o {filestem}.4".format(adaptorfile=adaptorfile, options=skewoptions, filename=filename, filestem=filestem)
     if opts.verbose:
-        print skewcmd
+        print(skewcmd)
     check_call(skewcmd.split(" "))
     
-    os.rename(skewoutname+"-trimmed.fastq", opts.output)
+    os.rename(filestem + ".4-trimmed.fastq", outputfile)
     if (opts.logfile):
-        os.rename(skewoutname+"-trimmed.log", opts.logfile)
+        os.rename(filestem + ".4-trimmed.log", opts.logfile)
     else:
-        print open(skewoutname+"-trimmed.log", 'r').read()
+        os.rename(filestem + ".4-trimmed.log", filestem + ".scrubbed.log")
+#        print(open(filestem + ".4-trimmed.log", 'r').read())
     
     if not opts.verbose:
         os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv"); 
