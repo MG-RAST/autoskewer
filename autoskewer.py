@@ -2,11 +2,14 @@
 
 import sys, os
 from optparse import OptionParser
-from subprocess import check_call
+
 try:
     from string import maketrans
 except ImportError:
     maketrans = "".maketrans
+
+from subprocess import check_call
+import shutil
 
 def idfiletype(fname):
     with open(fname) as p:
@@ -137,6 +140,7 @@ if __name__ == '__main__':
         print(P5r)
         print(P7adapter)
         print(P7r)
+
     
     adaptorfile = PATHPREFIX + ".adapter.fa"
     skewoutname = PATHPREFIX + ".4"
@@ -151,12 +155,13 @@ if __name__ == '__main__':
         print(skewcmd)
     check_call(skewcmd.split(" "))
     
-    os.rename(filestem + ".4-trimmed.fastq", outputfile)
-    if (opts.logfile):
-        os.rename(filestem + ".4-trimmed.log", opts.logfile)
+
+    shutil.move(filestem + ".4-trimmed.fastq", outputfile)
+    if opts.logfile:
+        shutil.move(filestem + ".4-trimmed.log", opts.logfile)
     else:
-        os.rename(filestem + ".4-trimmed.log", filestem + ".scrubbed.log")
+        shutil.move(filestem + ".4-trimmed.log", filestem + ".scrubbed.log")
 #        print(open(filestem + ".4-trimmed.log", 'r').read())
     
     if not opts.verbose:
-        os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv"); 
+        os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv");
