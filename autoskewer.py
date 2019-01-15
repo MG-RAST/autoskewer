@@ -155,14 +155,9 @@ if __name__ == '__main__':
         print(skewcmd)
     check_call(skewcmd.split(" "))
     
-    shutil.move(skewoutname+"-trimmed.fastq", opts.output)
-    if opts.logfile:
-        shutil.move(skewoutname+"-trimmed.log", opts.logfile)
-    else:
-        os.rename(filestem + ".4-trimmed.log", filestem + ".scrubbed.log")
 
     shutil.move(filestem + ".4-trimmed.fastq", outputfile)
-    if (opts.logfile):
+    if opts.logfile:
         shutil.move(filestem + ".4-trimmed.log", opts.logfile)
     else:
         shutil.move(filestem + ".4-trimmed.log", filestem + ".scrubbed.log")
