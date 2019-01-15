@@ -2,8 +2,12 @@
 
 import sys, os
 from optparse import OptionParser
-from string import maketrans
+if hasattr(str, 'maketrans'):
+    maketrans = str.maketrans
+else:
+    from string import maketrans
 from subprocess import check_call
+import shutil
 
 def idfiletype(fname):
     with open(fname) as p:
@@ -45,7 +49,7 @@ def write_adapter_fasta(filename, namesandadapters):
     '''Writes a fasta file containing a handful of sequence names, sequences'''
     fh = open(filename, 'w')
     assert len(namesandadapters) % 2 == 0
-    for i in range(len(namesandadapters)/2):
+    for i in range(int(len(namesandadapters)/2)):
         if len(namesandadapters[2*i + 1]) > 0:
             fh.write(">"+namesandadapters[2*i]+"\n" +
                      namesandadapters[2*i + 1] + "\n")
@@ -100,17 +104,17 @@ if __name__ == '__main__':
         filestem = filename[:-6]
     else:
         filestem = filename
-    
+
     TYPE = idfiletype(filename)
     TMPDIR = opts.tmpdir
     DATAPATH = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "data")
     PATHPREFIX = os.path.join(TMPDIR, os.path.basename(filestem))
     if opts.verbose:
-        print "TYPE: "+TYPE
-        print "TMPDIR: "+TMPDIR
-        print "DATAPATH: "+DATAPATH
-        print "PATHPREFIX: "+PATHPREFIX
-    
+        print("TYPE: "+TYPE)
+        print("TMPDIR: "+TMPDIR)
+        print("DATAPATH: "+DATAPATH)
+        print("PATHPREFIX: "+PATHPREFIX)
+
     idvector(filename)
     P5table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P5.fa"))
     P7table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P7.fa"))
@@ -123,28 +127,29 @@ if __name__ == '__main__':
     P5r = revc(P5adapter)
     P7r = revc(P7adapter)
     if opts.verbose:
-        print P5adapter
-        print P5r
-        print P7adapter
-        print P7r
-    
+        print(P5adapter)
+        print(P5r)
+        print(P7adapter)
+        print(P7r)
+
     adaptorfile = PATHPREFIX + ".adapter.fa"
     skewoutname = PATHPREFIX + ".4"
     skewoptions = "-k 5 -l 0 --quiet -t 4 -r .2 -m any"
-    write_adapter_fasta(adaptorfile, 
-                        [P5adaptername, P5adapter, P5adaptername+"_R", 
-                        P5r, P7adaptername, P7adapter, 
+    write_adapter_fasta(adaptorfile,
+                        [P5adaptername, P5adapter, P5adaptername+"_R",
+                        P5r, P7adaptername, P7adapter,
                         P7adaptername+"_R", P7r])
     skewcmd = "skewer -x %s %s %s -o %s"%(adaptorfile, skewoptions, filename, skewoutname)
     if opts.verbose:
-        print skewcmd
+        print(skewcmd)
     check_call(skewcmd.split(" "))
-    
-    os.rename(skewoutname+"-trimmed.fastq", opts.output)
-    if (opts.logfile):
-        os.rename(skewoutname+"-trimmed.log", opts.logfile)
+
+    shutil.move(skewoutname+"-trimmed.fastq", opts.output)
+    if opts.logfile:
+        shutil.move(skewoutname+"-trimmed.log", opts.logfile)
     else:
-        print open(skewoutname+"-trimmed.log", 'r').read()
-    
+        with open(skewoutname+"-trimmed.log", 'r') as f:
+            print(f.read())
+
     if not opts.verbose:
-        os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv"); 
+        os.remove(PATHPREFIX+".P5.csv"); os.remove(PATHPREFIX+".P7.csv");
