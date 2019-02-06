@@ -1,7 +1,8 @@
 
+indexes: data/vectors-P5.1.bt2 data/vectors-P7.1.bt2
 
-
-default: data/vectors-P5.1.bt2 data/vectors-P7.1.bt2
+install: indexes
+	python setup.py install
 
 %.1.bt2: %.fa
 	$(eval STEM=$(subst .1.bt2,,$@))
