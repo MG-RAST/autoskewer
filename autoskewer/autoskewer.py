@@ -36,7 +36,7 @@ def idvector(fname):
     else:
         OPTIONS = "-q"
     if not os.path.exists(DATAPATH+"/vectors-P5.4.bt2"):
-        sys.stderr.write("Can't find bowtie2 index in data directory!\n")
+        sys.stderr.write("Can't find bowtie2 index in data directory {}!\n".format(DATAPATH))
         sys.exit(1)
     check_call("bowtie2 -x {}/vectors-P5 {} {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, OPTIONS, fname, PATHPREFIX, PATHPREFIX), shell=True)
     check_call("bowtie2 -x {}/vectors-P7 {} {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, OPTIONS, fname, PATHPREFIX, PATHPREFIX), shell=True)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     TYPE = idfiletype(filename)
     TMPDIR = opts.tmpdir
-    DATAPATH = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "data")
+    DATAPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
     PATHPREFIX = os.path.join(TMPDIR, os.path.basename(filestem))
     if opts.verbose:
         print("TYPE:", TYPE)
