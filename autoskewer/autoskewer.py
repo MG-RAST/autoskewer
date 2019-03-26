@@ -117,6 +117,8 @@ if __name__ == '__main__':
     TYPE = idfiletype(filename)
     TMPDIR = os.path.abspath(opts.tmpdir)
     assert os.path.isdir(TMPDIR)
+    # add / for concatination 
+    TMPDIR = TMPDIR + "/"
 
     filestem = remove_fastx_suffix(os.path.join(TMPDIR, os.path.basename(filename))) # for intermediate
     if opts.verbose:
