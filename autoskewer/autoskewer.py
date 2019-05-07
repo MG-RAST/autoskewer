@@ -11,6 +11,7 @@ except ImportError:
 
 from subprocess import check_call
 import shutil
+from os.path import basename, dirname, exists, isdir, isfile, abspath
 
 def idfiletype(fname):
     with open(fname) as p:
@@ -35,15 +36,15 @@ def idvector(fname):
         OPTIONS = "-f"
     else:
         OPTIONS = "-q"
-    if not os.path.exists(DATAPATH+"/vectors-P5.4.bt2"):
+    if not exists(DATAPATH+"/vectors-P5.4.bt2"):
         sys.stderr.write("Can't find bowtie2 index in data directory {}!\n".format(DATAPATH))
         sys.exit(1)
-    check_call("bowtie2 -x {}/vectors-P5 {} {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, OPTIONS, fname, TMPDIR, TMPDIR), shell=True)
-    check_call("bowtie2 -x {}/vectors-P7 {} {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, OPTIONS, fname, TMPDIR, TMPDIR), shell=True)
-    check_call("cut -f 3  {}.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P5.csv".format(TMPDIR, TMPDIR), shell=True)
-    check_call("cut -f 3  {}.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P7.csv".format(TMPDIR, TMPDIR), shell=True)
+    check_call("bowtie2 -x {}/vectors-P5 {} {} --no-head --local --upto 2000000 -p 4 > {}.P5.tmp 2> {}.P5.err".format(DATAPATH, OPTIONS, fname, filestem, filestem), shell=True)
+    check_call("bowtie2 -x {}/vectors-P7 {} {} --no-head --local --upto 2000000 -p 4 > {}.P7.tmp 2> {}.P7.err".format(DATAPATH, OPTIONS, fname, filestem, filestem), shell=True)
+    check_call("cut -f 3  {}.P5.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P5.csv".format(filestem, filestem), shell=True)
+    check_call("cut -f 3  {}.P7.tmp | grep -v '*' | head -n 100000 | sort | uniq -c | awk '{{print $2 \"\t\" $1}}' | sort -k 2 -n -r > {}.P7.csv".format(filestem, filestem), shell=True)
     if not opts.verbose:
-        os.remove(TMPDIR+".P5.tmp"); os.remove(TMPDIR+".P7.tmp"); os.remove(TMPDIR+".P5.err"); os.remove(TMPDIR+".P7.err")
+        os.remove(filestem+".P5.tmp"); os.remove(filestem+".P7.tmp"); os.remove(filestem+".P5.err"); os.remove(filestem+".P7.err")
     return
 
 def revc(s):
@@ -106,8 +107,8 @@ if __name__ == '__main__':
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose [default off]")
 
     (opts, args) = parser.parse_args()
-    if not (opts.input and os.path.isfile(opts.input)):
-        if len(args) == 1 and os.path.isfile(args[0]):
+    if not (opts.input and isfile(opts.input)):
+        if len(args) == 1 and isfile(args[0]):
             filename = args[0]
         else:
             parser.error("Missing input file or wrong number of arguments")
@@ -115,20 +116,18 @@ if __name__ == '__main__':
         filename = opts.input
 
     TYPE = idfiletype(filename)
-    TMPDIR = os.path.abspath(opts.tmpdir)
-    assert os.path.isdir(TMPDIR)
-    # add / for concatination 
-    TMPDIR = TMPDIR + "/"
+    TMPDIR = abspath(opts.tmpdir)
+    assert isdir(TMPDIR)
+    filestem = remove_fastx_suffix(os.path.join(TMPDIR, basename(filename))) # for intermediate
 
-    filestem = remove_fastx_suffix(os.path.join(TMPDIR, os.path.basename(filename))) # for intermediate
     if opts.verbose:
+        print("TMPDIR:", TMPDIR)
         print("filestem:", filestem)
 
 #  build path to find data files using head of module __file__
-    DATAPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+    DATAPATH = os.path.join(dirname(dirname(abspath(__file__))), "data")
     if opts.verbose:
         print("TYPE:", TYPE)
-        print("TMPDIR:", TMPDIR)
         print("DATAPATH:", DATAPATH)
     if not opts.output:  # put output files in input directory
         outputfile = remove_fastx_suffix(filename) + ".scrubbed." + TYPE.lower()
@@ -144,8 +143,8 @@ if __name__ == '__main__':
     P7table = read_fasta_to_table(os.path.join(DATAPATH, "vectors-P7.fa"))
     P5table[""] = ""
     P7table[""] = ""
-    P5adaptername = grab_first_field(TMPDIR + ".P5.csv")
-    P7adaptername = grab_first_field(TMPDIR + ".P7.csv")
+    P5adaptername = grab_first_field(filestem + ".P5.csv")
+    P7adaptername = grab_first_field(filestem + ".P7.csv")
     P5adapter = P5table[P5adaptername]
     P7adapter = P7table[P7adaptername]
     P5r = revc(P5adapter)
@@ -156,8 +155,8 @@ if __name__ == '__main__':
         print(P7adapter)
         print(P7r)
 
-    adaptorfile = TMPDIR + ".adapter.fa"
-    skewoutname = TMPDIR + ".4"
+    adaptorfile = filestem + ".adapter.fa"
+    skewoutname = filestem + ".4"
     skewoptions = "-k 5 -l 0 --quiet -t {} -r .2 -m any".format(str(opts.processes))
     write_adapter_fasta(adaptorfile,
                         [P5adaptername, P5adapter, P5adaptername+"_R",
@@ -176,5 +175,5 @@ if __name__ == '__main__':
 
     if not opts.verbose:
         os.remove(adaptorfile)
-        os.remove(TMPDIR+".P5.csv")
-        os.remove(TMPDIR+".P7.csv")
+        os.remove(filestem+".P5.csv")
+        os.remove(filestem+".P7.csv")
