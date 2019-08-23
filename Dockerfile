@@ -1,5 +1,5 @@
 
-FROM ubuntu:14.04
+FROM ubuntu:18.04
 
 # example: docker build -t autoskewer:latest .
 
