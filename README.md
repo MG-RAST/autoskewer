@@ -18,7 +18,7 @@ Autoskewer depends on
 Installation
 ============
 
-    git clone http://github.com/wltrimbl/autoskewer
+    git clone http://github.com/MG-RAST/autoskewer
     cd autoskewer
     make
 
